@@ -41,13 +41,13 @@ class CompoundChangeDetectorTest {
 
         try {
             srcTree = TreeGenerators.getInstance().getTree(srcFile).getRoot();
-            System.out.println("*******************************************" + srcFile);
+            System.out.println("***********************Source File Tree***********************");
             System.out.println(srcTree.toTreeString());
-            System.out.println("*******************************************");
+            System.out.println("***********************Source File Tree***********************");
             dstTree = TreeGenerators.getInstance().getTree(dstFile).getRoot();
-            System.out.println("*******************************************" + dstFile);
+            System.out.println("********************Destination File Tree*********************");
             System.out.println(dstTree.toTreeString());
-            System.out.println("*******************************************");
+            System.out.println("********************Destination File Tree*********************");
         } catch (IOException e) {
             e.printStackTrace();
         }
