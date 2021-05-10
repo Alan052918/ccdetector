@@ -44,4 +44,3 @@ Currently only [core](core) is implemented, test cases in [core/src/test/resourc
 - Method relocation test cases: [core/src/test/resources/test_src_mrel.py](core/src/test/resources/test_src_mrel.py) & [core/src/test/resources/test_dst_mrel.py](core/src/test/resources/test_dst_mrel.py)
 - Parameter changes & Parameter default value changes test cases: [core/src/test/resources/test_src_param.py](core/src/test/resources/test_src_param.py) & [core/src/test/resources/test_dst_param.py](core/src/test/resources/test_dst_param.py)
 - Return type changes test cases: [core/src/test/resources/test_src_ret.py](core/src/test/resources/test_src_ret.py) & [core/src/test/resources/test_dst_ret.py](core/src/test/resources/test_dst_ret.py)
-# ccdetector
