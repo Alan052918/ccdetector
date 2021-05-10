@@ -1,6 +1,6 @@
 # ccdetector
 
-A static analysis tool depending on [GumTree](https://github.com/GumTreeDiff/gumtree) to detect types of source code refactoring changes.
+A static analysis tool depending on [GumTree](https://github.com/GumTreeDiff/gumtree) to detect 14 types of source code refactoring changes.
 
 ## Supported Changes
 
