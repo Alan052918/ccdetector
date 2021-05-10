@@ -1,3 +1,5 @@
+package com.github.ccdetector.changes;
+
 public abstract class CompoundChangeRecord {
 
     public String framework;

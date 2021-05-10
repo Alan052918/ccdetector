@@ -1,3 +1,5 @@
+package com.github.ccdetector.changes;
+
 public class ReturnTypeChange extends CompoundChangeRecord {
 
     private String targetMethodName;

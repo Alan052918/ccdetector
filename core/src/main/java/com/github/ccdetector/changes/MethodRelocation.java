@@ -1,3 +1,5 @@
+package com.github.ccdetector.changes;
+
 public class MethodRelocation extends CompoundChangeRecord {
 
     private String methodName;

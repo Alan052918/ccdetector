@@ -1,3 +1,5 @@
+package com.github.ccdetector.changes;
+
 public class MethodRenaming extends CompoundChangeRecord {
 
     private String oldMethodName;

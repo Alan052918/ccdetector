@@ -1,3 +1,6 @@
+package com.github.ccdetector;
+
+import com.github.ccdetector.CompoundChangeDetector;
 import com.github.gumtreediff.gen.TreeGenerators;
 import com.github.gumtreediff.tree.Tree;
 import org.junit.jupiter.api.BeforeEach;

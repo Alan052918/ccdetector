@@ -1,3 +1,5 @@
+package com.github.ccdetector.changes;
+
 public class ParameterChange extends CompoundChangeRecord {
 
     private String targetMethodName;
