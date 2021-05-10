@@ -1,6 +1,5 @@
 package com.github.ccdetector;
 
-import com.github.ccdetector.CompoundChangeDetector;
 import com.github.gumtreediff.gen.TreeGenerators;
 import com.github.gumtreediff.tree.Tree;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,8 +20,8 @@ class CompoundChangeDetectorTest {
 
     @Test
     void computeFileEditScript() {
-        String srcFile = Paths.get(coreTestResourcesDirectory, "test_src_mren.py").toAbsolutePath().toString();
-        String dstFile = Paths.get(coreTestResourcesDirectory, "test_dst_mren.py").toAbsolutePath().toString();
+        String srcFile = Paths.get(coreTestResourcesDirectory, "test_src_all.py").toAbsolutePath().toString();
+        String dstFile = Paths.get(coreTestResourcesDirectory, "test_dst_all.py").toAbsolutePath().toString();
         CompoundChangeDetector.computeFileEditScript(srcFile, dstFile);
 
         System.out.println("src: " + srcFile);
@@ -34,8 +33,8 @@ class CompoundChangeDetectorTest {
 
     @Test
     void computeTreeEditScript() {
-        String srcFile = Paths.get(coreTestResourcesDirectory, "test_src_mren.py").toAbsolutePath().toString();
-        String dstFile = Paths.get(coreTestResourcesDirectory, "test_dst_mren.py").toAbsolutePath().toString();
+        String srcFile = Paths.get(coreTestResourcesDirectory, "test_src_all.py").toAbsolutePath().toString();
+        String dstFile = Paths.get(coreTestResourcesDirectory, "test_dst_all.py").toAbsolutePath().toString();
         Tree srcTree = null;
         Tree dstTree = null;
 
@@ -59,8 +58,8 @@ class CompoundChangeDetectorTest {
 
     @Test
     void checkCompoundChanges() {
-        String srcFile = Paths.get(coreTestResourcesDirectory, "test_src_param.py").toAbsolutePath().toString();
-        String dstFile = Paths.get(coreTestResourcesDirectory, "test_dst_param.py").toAbsolutePath().toString();
+        String srcFile = Paths.get(coreTestResourcesDirectory, "test_src_all.py").toAbsolutePath().toString();
+        String dstFile = Paths.get(coreTestResourcesDirectory, "test_dst_all.py").toAbsolutePath().toString();
         CompoundChangeDetector.checkCompoundChanges(srcFile, dstFile);
 
         System.out.println("src: " + srcFile);
