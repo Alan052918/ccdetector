@@ -37,18 +37,18 @@ public class CompoundChangeDetector {
     }
 
     /**
-     * Compute edit script deduced that transform AST in srcFile to AST in dstFile
+     * Compute edit script deduced that transform AST in srcFileName to AST in dstFileName
      *
-     * @param srcFile source file name
-     * @param dstFile destination file name
+     * @param srcFileName source file name
+     * @param dstFileName destination file name
      */
-    public static void computeFileEditScript(String srcFile, String dstFile) {
+    public static void computeFileEditScript(String srcFileName, String dstFileName) {
         Tree srcTree = null;
         Tree dstTree = null;
 
         try {
-            srcTree = TreeGenerators.getInstance().getTree(srcFile).getRoot();
-            dstTree = TreeGenerators.getInstance().getTree(dstFile).getRoot();
+            srcTree = TreeGenerators.getInstance().getTree(srcFileName).getRoot();
+            dstTree = TreeGenerators.getInstance().getTree(dstFileName).getRoot();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -73,13 +73,13 @@ public class CompoundChangeDetector {
     /**
      * Check for compound changes in given files, add detected changes to compoundChangeRecords
      *
-     * @param srcFile earlier version of source file
-     * @param dstFile later version of source file
+     * @param srcFileName earlier version of source file
+     * @param dstFileName later version of source file
      */
-    public static void checkCompoundChanges(String srcFile, String dstFile) {
-        computeFileEditScript(srcFile, dstFile);
+    public static void checkCompoundChanges(String srcFileName, String dstFileName) {
+        computeFileEditScript(srcFileName, dstFileName);
         checkMethodRenaming();
-        checkMethodRelocation();
+//        checkMethodRelocation();
         checkParameterChanges();
         checkParameterDefaultValueChange();
         checkReturnTypeChange();
@@ -148,17 +148,31 @@ public class CompoundChangeDetector {
                     node.getType().toString().equals("param")) {
                 /* Parameter removal, might affiliate with default value removal */
                 checkParameterInsertionRemoval(node, false);
+            } else if (action instanceof Insert &&
+                    node.getParent().getType().toString().equals("parameters") &&
+                    node.getType().toString().equals("operator") &&
+                    node.getLabel().equals("*")) {
+                /* Parameter "*" insertion */
+                String methodName = updatedNodeMethodName(node);
+                ParameterChange parameterAsteriskInsertion =
+                        new ParameterChange(methodName, "", "*",
+                                ParameterChange.Type.PARAMETER_INSERTION);
+                parameterChangeRecords.add(parameterAsteriskInsertion);
+            } else if (action instanceof Delete &&
+                    node.getParent().getType().toString().equals("parameters") &&
+                    node.getType().toString().equals("operator") &&
+                    node.getLabel().equals("*")) {
+                /* Parameter "*" removal */
+                String methodName = updatedNodeMethodName(node);
+                ParameterChange parameterAsteriskRemoval =
+                        new ParameterChange(methodName, "*", "",
+                                ParameterChange.Type.PARAMETER_REMOVAL);
+                parameterChangeRecords.add(parameterAsteriskRemoval);
             } else if (action instanceof Update &&
                     node.getParent().getType().toString().equals("param") &&
                     node.getType().toString().equals("name")) {
                 /* Parameter update */
-                String methodName = node.getParents().get(2).getChild(0).getLabel();
-                // Check if the method of the removed default value has been renamed
-                for (MethodRenaming methodRenaming : methodRenamingRecords) {
-                    if (methodRenaming.getOldMethodName().equals(methodName)) {
-                        methodName = methodRenaming.getNewMethodName();
-                    }
-                }
+                String methodName = updatedNodeMethodName(node);
                 ParameterChange parameterUpdate;
                 String oldParameterName = node.getLabel();
                 String newParameterName = ((Update) action).getValue();
@@ -187,7 +201,7 @@ public class CompoundChangeDetector {
             Tree node = action.getNode();
             if (action instanceof TreeInsert) {
                 if (node.getType().toString().equals("param") &&
-                        node.getChildren().size() == 3 &&
+                        node.getChildren().size() > 2 &&
                         node.getChild(1).getLabel().equals("=")) {
                     /* Parameter-removal-affiliate default value addition */
                     checkParameterDefaultValueAdditionRemoval(node, true);
@@ -198,7 +212,7 @@ public class CompoundChangeDetector {
                 }
             } else if (action instanceof TreeDelete) {
                 if (node.getType().toString().equals("param") &&
-                        node.getChildren().size() == 3 &&
+                        node.getChildren().size() > 2 &&
                         node.getChild(1).getLabel().equals("=")) {
                     /* Parameter-removal-affiliate default value removal */
                     checkParameterDefaultValueAdditionRemoval(node, false);
@@ -263,16 +277,28 @@ public class CompoundChangeDetector {
      * Check for
      * {@link ParameterDefaultValueChange.Type#PARAMETER_DEFAULT_VALUE_ADDITION} and
      * {@link ParameterDefaultValueChange.Type#PARAMETER_DEFAULT_VALUE_REMOVAL}
-     * with given inserted/removed subtree
+     * affiliated with inserting/removing node
      *
-     * @param node       the root of the subtree inserted/removed
+     * @param node       the param node inserted/removed
      * @param isAddition true if the subtree is inserted, false otherwise
      */
     private static void checkParameterDefaultValueAdditionRemoval(Tree node, boolean isAddition) {
-        String methodName = node.getParents().get(1).getChild(0).getLabel();
+        String methodName = updatedNodeMethodName(node);
         String parameterName = node.getChild(0).getLabel();
-        String defaultValueString = node.getChild(2).getLabel();
-        /* Parameter default value change */
+        String defaultValueString;
+        switch (node.getChildren().size()) {
+            case 3:
+                defaultValueString = "None";
+                break;
+            case 4:
+                defaultValueString = node.getChild(2).getType().toString().equals("atom") ?
+                        node.getChild(2).toTreeString() : node.getChild(2).getLabel();
+                break;
+            default:
+                System.err.println("Unidentified TreeInsert/TreeDelete action");
+                return;
+        }
+        /* Parameter default value addition/removal affiliated with parameter insertion/removal */
         ParameterDefaultValueChange parameterDefaultValueChange = isAddition ?
                 new ParameterDefaultValueChange(methodName, parameterName, "", defaultValueString,
                         ParameterDefaultValueChange.Type.PARAMETER_DEFAULT_VALUE_ADDITION) :
@@ -293,8 +319,8 @@ public class CompoundChangeDetector {
         boolean matched = false;
         for (Iterator<Tree> iterator = addedDefaultValueNodes.iterator(); iterator.hasNext(); ) {
             Tree addedDefaultValueNode = iterator.next();
-            String addedNodeMethodName = addedDefaultValueNode.getParents().get(2).getChild(0).getLabel();
-            String addedNodeParameterName = addedDefaultValueNode.getParent().getChild(0).getLabel();
+            String addedNodeMethodName = updatedNodeMethodName(addedDefaultValueNode);
+            String addedNodeParameterName = updatedNodeParameterName(addedDefaultValueNode);
             String addedDefaultValueString = addedDefaultValueNode.getType().toString().equals("atom") ?
                     addedDefaultValueNode.toTreeString() : addedDefaultValueNode.getLabel();
             String removedNodeMethodName = updatedNodeMethodName(removedNode);
@@ -329,7 +355,18 @@ public class CompoundChangeDetector {
      * @return the latest method name
      */
     private static String updatedNodeMethodName(Tree node) {
-        String updatedMethodName = node.getParents().get(2).getChild(0).getLabel();
+        String updatedMethodName;
+        switch (node.getParent().getType().toString()) {
+            case "parameters":  // param node
+                updatedMethodName = node.getParents().get(1).getChild(0).getLabel();
+                break;
+            case "param":  // default value node
+                updatedMethodName = node.getParents().get(2).getChild(0).getLabel();
+                break;
+            default:
+                System.err.println("Unidentified change action");
+                return null;
+        }
         for (MethodRenaming methodRenaming : methodRenamingRecords) {
             if (methodRenaming.getOldMethodName().equals(updatedMethodName)) {
                 updatedMethodName = methodRenaming.getNewMethodName();
