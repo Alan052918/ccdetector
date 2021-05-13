@@ -2,7 +2,7 @@ package com.github.ccdetector.changes;
 
 public class ReturnTypeChange extends CompoundChangeRecord {
 
-    private String targetMethodName;
+    private String targetFunctionName;
     private String oldReturnTypeString;
     private String newReturnTypeString;
 
@@ -14,10 +14,10 @@ public class ReturnTypeChange extends CompoundChangeRecord {
 
     private Type type;
 
-    public ReturnTypeChange(String targetMethodName, String oldReturnTypeString, String newReturnTypeString,
+    public ReturnTypeChange(String targetFunctionName, String oldReturnTypeString, String newReturnTypeString,
                             Type type) {
         super();
-        this.targetMethodName = targetMethodName;
+        this.targetFunctionName = targetFunctionName;
         this.oldReturnTypeString = oldReturnTypeString;
         this.newReturnTypeString = newReturnTypeString;
         this.type = type;
@@ -36,8 +36,8 @@ public class ReturnTypeChange extends CompoundChangeRecord {
         }
     }
 
-    public String getTargetMethodName() {
-        return targetMethodName;
+    public String getTargetFunctionName() {
+        return targetFunctionName;
     }
 
     public String getOldReturnTypeString() {
@@ -57,18 +57,18 @@ public class ReturnTypeChange extends CompoundChangeRecord {
         String description;
         switch (type) {
             case RETURN_TYPE_ADDITION:
-                description = String.format("add return type hint: %s", newReturnTypeString);
+                description = String.format("add return annotation: %s", newReturnTypeString);
                 break;
             case RETURN_TYPE_REMOVAL:
-                description = "remove return type hint";
+                description = "remove return annotation";
                 break;
             case RETURN_TYPE_UPDATE:
-                description = String.format("old return type hint: %s\nnew return type hint: %s",
+                description = String.format("old return annotation: %s\nnew return annotation: %s",
                         oldReturnTypeString, newReturnTypeString);
                 break;
             default:
                 description = "Invalid return type change";
         }
-        return String.format("===\n%s\n---\ntarget method: %s\n%s\n", getName(), targetMethodName, description);
+        return String.format("===\n%s\n---\ntarget function: %s\n%s\n", getName(), targetFunctionName, description);
     }
 }

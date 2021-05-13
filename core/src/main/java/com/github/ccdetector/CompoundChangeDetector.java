@@ -20,8 +20,8 @@ public class CompoundChangeDetector {
 
     private static EditScript editScript;
 
-    private static ArrayList<MethodRenaming> methodRenamingRecords = new ArrayList<>();
-    private static ArrayList<MethodRelocation> methodRelocationRecords = new ArrayList<>();
+    private static ArrayList<FunctionRenaming> functionRenamingRecords = new ArrayList<>();
+    private static ArrayList<FunctionRelocation> functionRelocationRecords = new ArrayList<>();
     private static ArrayList<ParameterChange> parameterChangeRecords = new ArrayList<>();
     private static ArrayList<ParameterDefaultValueChange> parameterDefaultValueChangeRecords = new ArrayList<>();
     private static ArrayList<ReturnTypeChange> returnTypeChangeRecords = new ArrayList<>();
@@ -78,7 +78,7 @@ public class CompoundChangeDetector {
      */
     public static void checkCompoundChanges(String srcFileName, String dstFileName) {
         computeFileEditScript(srcFileName, dstFileName);
-        checkMethodRenaming();
+        checkFunctionRenaming();
 //        checkMethodRelocation();
         checkParameterChanges();
         checkParameterDefaultValueChange();
@@ -86,9 +86,9 @@ public class CompoundChangeDetector {
     }
 
     /**
-     * Check for {@link MethodRenaming} in editScript
+     * Check for {@link FunctionRenaming} in editScript
      */
-    public static void checkMethodRenaming() {
+    public static void checkFunctionRenaming() {
         for (Action action : editScript.asList()) {
             Tree node = action.getNode();
             if (action instanceof Update &&
@@ -96,40 +96,40 @@ public class CompoundChangeDetector {
                     node.getParent().getType().toString().equals("funcdef") &&
                     node.positionInParent() == 0) {
                 /* Method renaming */
-                MethodRenaming methodRenaming;
-                String oldApiName = node.getLabel();
-                String newApiName = ((Update) action).getValue();
-                if (oldApiName.startsWith("_") &&
-                        !newApiName.startsWith("_")) {
-                    methodRenaming = new MethodRenaming(oldApiName, newApiName,
-                            MethodRenaming.Type.PRIVATE_TO_PUBLIC);
-                } else if (!oldApiName.startsWith("_") &&
-                        newApiName.startsWith("_")) {
-                    methodRenaming = new MethodRenaming(oldApiName, newApiName,
-                            MethodRenaming.Type.PUBLIC_TO_PRIVATE);
+                FunctionRenaming functionRenaming;
+                String oldFunctionName = node.getLabel();
+                String newFunctionName = ((Update) action).getValue();
+                if (oldFunctionName.startsWith("_") &&
+                        !newFunctionName.startsWith("_")) {
+                    functionRenaming = new FunctionRenaming(oldFunctionName, newFunctionName,
+                            FunctionRenaming.Type.PRIVATE_TO_PUBLIC);
+                } else if (!oldFunctionName.startsWith("_") &&
+                        newFunctionName.startsWith("_")) {
+                    functionRenaming = new FunctionRenaming(oldFunctionName, newFunctionName,
+                            FunctionRenaming.Type.PUBLIC_TO_PRIVATE);
                 } else {
-                    methodRenaming = new MethodRenaming(oldApiName, newApiName,
-                            MethodRenaming.Type.NO_SWITCH);
+                    functionRenaming = new FunctionRenaming(oldFunctionName, newFunctionName,
+                            FunctionRenaming.Type.NO_SWITCH);
                 }
-                methodRenamingRecords.add(methodRenaming);
+                functionRenamingRecords.add(functionRenaming);
             }
         }
     }
 
     /**
-     * Check for {@link MethodRelocation} in editScript
+     * Check for {@link FunctionRelocation} in editScript
      */
-    public static void checkMethodRelocation() {
+    public static void checkFunctionRelocation() {
         for (Action action : editScript.asList()) {
             Tree node = action.getNode();
             if (action instanceof Move &&
                     node.getType().toString().equals("funcdef")) {
                 /* Same-file method relocation */
-                String methodName = node.getChild(0).getLabel();
+                String functionName = node.getChild(0).getLabel();
                 int oldLocation = node.positionInParent();
                 int newLocation = ((Move) action).getPosition();
-                MethodRelocation methodRelocation = new MethodRelocation(methodName, oldLocation, newLocation);
-                methodRelocationRecords.add(methodRelocation);
+                FunctionRelocation functionRelocation = new FunctionRelocation(functionName, oldLocation, newLocation);
+                functionRelocationRecords.add(functionRelocation);
             }
         }
     }
@@ -153,9 +153,9 @@ public class CompoundChangeDetector {
                     node.getType().toString().equals("operator") &&
                     node.getLabel().equals("*")) {
                 /* Parameter "*" insertion */
-                String methodName = updatedNodeMethodName(node);
+                String functionName = updatedNodeFunctionName(node);
                 ParameterChange parameterAsteriskInsertion =
-                        new ParameterChange(methodName, "", "*",
+                        new ParameterChange(functionName, "", "*",
                                 ParameterChange.Type.PARAMETER_INSERTION);
                 parameterChangeRecords.add(parameterAsteriskInsertion);
             } else if (action instanceof Delete &&
@@ -163,16 +163,16 @@ public class CompoundChangeDetector {
                     node.getType().toString().equals("operator") &&
                     node.getLabel().equals("*")) {
                 /* Parameter "*" removal */
-                String methodName = updatedNodeMethodName(node);
+                String functionName = updatedNodeFunctionName(node);
                 ParameterChange parameterAsteriskRemoval =
-                        new ParameterChange(methodName, "*", "",
+                        new ParameterChange(functionName, "*", "",
                                 ParameterChange.Type.PARAMETER_REMOVAL);
                 parameterChangeRecords.add(parameterAsteriskRemoval);
             } else if (action instanceof Update &&
                     node.getParent().getType().toString().equals("param") &&
                     node.getType().toString().equals("name")) {
                 /* Parameter update */
-                String methodName = updatedNodeMethodName(node);
+                String functionName = updatedNodeFunctionName(node);
                 ParameterChange parameterUpdate;
                 String oldParameterName = node.getLabel();
                 String newParameterName = ((Update) action).getValue();
@@ -181,11 +181,11 @@ public class CompoundChangeDetector {
                         (oldParameterName.equals("self") &&
                                 newParameterName.equals("cls"))) {
                     /* cls/self switch */
-                    parameterUpdate = new ParameterChange(methodName, oldParameterName, newParameterName,
+                    parameterUpdate = new ParameterChange(functionName, oldParameterName, newParameterName,
                             ParameterChange.Type.CLS_SELF_SWITCH);
                 } else {
                     /* Normal update */
-                    parameterUpdate = new ParameterChange(methodName, oldParameterName, newParameterName,
+                    parameterUpdate = new ParameterChange(functionName, oldParameterName, newParameterName,
                             ParameterChange.Type.PARAMETER_NORMAL_UPDATE);
                 }
                 parameterChangeRecords.add(parameterUpdate);
@@ -237,12 +237,12 @@ public class CompoundChangeDetector {
                     node.getParent().getType().toString().equals("param") &&
                     !node.getType().toString().equals("name")) {
                 /* Parameter default value update (same data type) */
-                String methodName = updatedNodeMethodName(node);
+                String functionName = updatedNodeFunctionName(node);
                 String parameterName = updatedNodeParameterName(node);
                 String oldDefaultValueString = node.getLabel();
                 String newDefaultValueString = ((Update) action).getValue();
                 ParameterDefaultValueChange parameterDefaultValueUpdate =
-                        new ParameterDefaultValueChange(methodName, parameterName,
+                        new ParameterDefaultValueChange(functionName, parameterName,
                                 oldDefaultValueString, newDefaultValueString,
                                 ParameterDefaultValueChange.Type.PARAMETER_DEFAULT_VALUE_UPDATE);
                 parameterDefaultValueChangeRecords.add(parameterDefaultValueUpdate);
@@ -262,13 +262,13 @@ public class CompoundChangeDetector {
      * @param isInsertion true if the subtree is inserted, false otherwise
      */
     private static void checkParameterInsertionRemoval(Tree node, boolean isInsertion) {
-        String methodName = node.getParents().get(1).getChild(0).getLabel();
+        String functionName = node.getParents().get(1).getChild(0).getLabel();
         String parameterName = node.getChild(0).getLabel();
         /* Parameter change */
         ParameterChange parameterChange = isInsertion ?
-                new ParameterChange(methodName, "", parameterName,
+                new ParameterChange(functionName, "", parameterName,
                         ParameterChange.Type.PARAMETER_INSERTION) :
-                new ParameterChange(methodName, parameterName, "",
+                new ParameterChange(functionName, parameterName, "",
                         ParameterChange.Type.PARAMETER_REMOVAL);
         parameterChangeRecords.add(parameterChange);
     }
@@ -283,7 +283,7 @@ public class CompoundChangeDetector {
      * @param isAddition true if the subtree is inserted, false otherwise
      */
     private static void checkParameterDefaultValueAdditionRemoval(Tree node, boolean isAddition) {
-        String methodName = updatedNodeMethodName(node);
+        String functionName = updatedNodeFunctionName(node);
         String parameterName = node.getChild(0).getLabel();
         String defaultValueString;
         switch (node.getChildren().size()) {
@@ -300,9 +300,9 @@ public class CompoundChangeDetector {
         }
         /* Parameter default value addition/removal affiliated with parameter insertion/removal */
         ParameterDefaultValueChange parameterDefaultValueChange = isAddition ?
-                new ParameterDefaultValueChange(methodName, parameterName, "", defaultValueString,
+                new ParameterDefaultValueChange(functionName, parameterName, "", defaultValueString,
                         ParameterDefaultValueChange.Type.PARAMETER_DEFAULT_VALUE_ADDITION) :
-                new ParameterDefaultValueChange(methodName, parameterName, defaultValueString, "",
+                new ParameterDefaultValueChange(functionName, parameterName, defaultValueString, "",
                         ParameterDefaultValueChange.Type.PARAMETER_DEFAULT_VALUE_REMOVAL);
         parameterDefaultValueChangeRecords.add(parameterDefaultValueChange);
     }
@@ -319,22 +319,22 @@ public class CompoundChangeDetector {
         boolean matched = false;
         for (Iterator<Tree> iterator = addedDefaultValueNodes.iterator(); iterator.hasNext(); ) {
             Tree addedDefaultValueNode = iterator.next();
-            String addedNodeMethodName = updatedNodeMethodName(addedDefaultValueNode);
+            String addedNodeFunctionName = updatedNodeFunctionName(addedDefaultValueNode);
             String addedNodeParameterName = updatedNodeParameterName(addedDefaultValueNode);
             String addedDefaultValueString = addedDefaultValueNode.getType().toString().equals("atom") ?
                     addedDefaultValueNode.toTreeString() : addedDefaultValueNode.getLabel();
-            String removedNodeMethodName = updatedNodeMethodName(removedNode);
+            String removedNodeFunctionName = updatedNodeFunctionName(removedNode);
             String removedNodeParameterName = updatedNodeParameterName(removedNode);
             String removedDefaultValueString = removedNode.getType().toString().equals("atom") ?
                     removedNode.toTreeString() : removedNode.getLabel();
             if ((addedDefaultValueNode.getPos() == removedNode.getPos() &&
                     addedDefaultValueNode.getEndPos() == removedNode.getEndPos()) ||
-                    (addedNodeMethodName.equals(removedNodeMethodName) &&
+                    (addedNodeFunctionName.equals(removedNodeFunctionName) &&
                             addedNodeParameterName.equals(removedNodeParameterName))) {
                 // Identical position / method and parameter name
                 /* Parameter default value update */
                 ParameterDefaultValueChange parameterDefaultValueUpdate =
-                        new ParameterDefaultValueChange(addedNodeMethodName, addedNodeParameterName,
+                        new ParameterDefaultValueChange(addedNodeFunctionName, addedNodeParameterName,
                                 removedDefaultValueString, addedDefaultValueString,
                                 ParameterDefaultValueChange.Type.PARAMETER_DEFAULT_VALUE_UPDATE);
                 parameterDefaultValueChangeRecords.add(parameterDefaultValueUpdate);
@@ -354,25 +354,25 @@ public class CompoundChangeDetector {
      * @param node the default value Tree node to be checked
      * @return the latest method name
      */
-    private static String updatedNodeMethodName(Tree node) {
-        String updatedMethodName;
+    private static String updatedNodeFunctionName(Tree node) {
+        String updatedFunctionName;
         switch (node.getParent().getType().toString()) {
             case "parameters":  // param node
-                updatedMethodName = node.getParents().get(1).getChild(0).getLabel();
+                updatedFunctionName = node.getParents().get(1).getChild(0).getLabel();
                 break;
             case "param":  // default value node
-                updatedMethodName = node.getParents().get(2).getChild(0).getLabel();
+                updatedFunctionName = node.getParents().get(2).getChild(0).getLabel();
                 break;
             default:
                 System.err.println("Unidentified change action");
                 return null;
         }
-        for (MethodRenaming methodRenaming : methodRenamingRecords) {
-            if (methodRenaming.getOldMethodName().equals(updatedMethodName)) {
-                updatedMethodName = methodRenaming.getNewMethodName();
+        for (FunctionRenaming functionRenaming : functionRenamingRecords) {
+            if (functionRenaming.getOldFunctionName().equals(updatedFunctionName)) {
+                updatedFunctionName = functionRenaming.getNewFunctionName();
             }
         }
-        return updatedMethodName;
+        return updatedFunctionName;
     }
 
     /**
@@ -400,15 +400,15 @@ public class CompoundChangeDetector {
      */
     private static void collectParameterDefaultValueAdditionRemoval(ArrayList<Tree> nodes, boolean isAddition) {
         for (Tree node : nodes) {
-            String methodName = node.getParents().get(2).getChild(0).getLabel();
+            String functionName = node.getParents().get(2).getChild(0).getLabel();
             String parameterName = node.getParent().getChild(0).getLabel();
             String defaultValueString = node.getType().toString().equals("atom") ?
                     node.toTreeString() : node.getLabel();
             ParameterDefaultValueChange parameterDefaultValueChange = isAddition ?
-                    new ParameterDefaultValueChange(methodName, parameterName,
+                    new ParameterDefaultValueChange(functionName, parameterName,
                             "", defaultValueString,
                             ParameterDefaultValueChange.Type.PARAMETER_DEFAULT_VALUE_ADDITION) :
-                    new ParameterDefaultValueChange(methodName, parameterName,
+                    new ParameterDefaultValueChange(functionName, parameterName,
                             defaultValueString, "",
                             ParameterDefaultValueChange.Type.PARAMETER_DEFAULT_VALUE_REMOVAL);
             parameterDefaultValueChangeRecords.add(parameterDefaultValueChange);
@@ -425,17 +425,17 @@ public class CompoundChangeDetector {
                     node.getParent().getType().toString().equals("funcdef") &&
                     node.positionInParent() == 3) {
                 // 4th child of funcdef node, return type node
-                String methodName = node.getParent().getChild(0).getLabel();
+                String functionName = node.getParent().getChild(0).getLabel();
                 if (action instanceof Insert) {
                     /* Return type addition */
                     ReturnTypeChange returnTypeAddition =
-                            new ReturnTypeChange(methodName, "", node.getLabel(),
+                            new ReturnTypeChange(functionName, "", node.getLabel(),
                                     ReturnTypeChange.Type.RETURN_TYPE_ADDITION);
                     returnTypeChangeRecords.add(returnTypeAddition);
                 } else if (action instanceof Delete) {
                     /* Return type removal */
                     ReturnTypeChange returnTypeRemoval =
-                            new ReturnTypeChange(methodName, node.getLabel(), "",
+                            new ReturnTypeChange(functionName, node.getLabel(), "",
                                     ReturnTypeChange.Type.RETURN_TYPE_REMOVAL);
                     returnTypeChangeRecords.add(returnTypeRemoval);
                 } else if (action instanceof Update) {
@@ -443,7 +443,7 @@ public class CompoundChangeDetector {
                     String oldReturnTypeString = node.getLabel();
                     String newReturnTypeString = ((Update) action).getValue();
                     ReturnTypeChange returnTypeUpdate =
-                            new ReturnTypeChange(methodName, oldReturnTypeString, newReturnTypeString,
+                            new ReturnTypeChange(functionName, oldReturnTypeString, newReturnTypeString,
                                     ReturnTypeChange.Type.RETURN_TYPE_UPDATE);
                     returnTypeChangeRecords.add(returnTypeUpdate);
                 }
@@ -455,12 +455,12 @@ public class CompoundChangeDetector {
         return editScript;
     }
 
-    public static ArrayList<MethodRenaming> getMethodRenamingRecords() {
-        return methodRenamingRecords;
+    public static ArrayList<FunctionRenaming> getMethodRenamingRecords() {
+        return functionRenamingRecords;
     }
 
-    public static ArrayList<MethodRelocation> getMethodRelocationRecords() {
-        return methodRelocationRecords;
+    public static ArrayList<FunctionRelocation> getMethodRelocationRecords() {
+        return functionRelocationRecords;
     }
 
     public static ArrayList<ParameterChange> getParameterChangeRecords() {

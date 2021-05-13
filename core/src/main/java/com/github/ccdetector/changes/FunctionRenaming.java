@@ -1,12 +1,12 @@
 package com.github.ccdetector.changes;
 
-public class MethodRenaming extends CompoundChangeRecord {
+public class FunctionRenaming extends CompoundChangeRecord {
 
-    private String oldMethodName;
-    private String newMethodName;
+    private String oldFunctionName;
+    private String newFunctionName;
 
     /**
-     * Method accessibility after change, based on {@link MethodRenaming#newMethodName}
+     * Method accessibility after change, based on {@link FunctionRenaming#newFunctionName}
      */
     private Boolean weaklyPrivate;
 
@@ -18,11 +18,11 @@ public class MethodRenaming extends CompoundChangeRecord {
 
     private Type type;
 
-    public MethodRenaming(String oldMethodName, String newMethodName, Type type) {
+    public FunctionRenaming(String oldFunctionName, String newFunctionName, Type type) {
         super();
-        this.oldMethodName = oldMethodName;
-        this.newMethodName = newMethodName;
-        if (newMethodName.startsWith("_")) {
+        this.oldFunctionName = oldFunctionName;
+        this.newFunctionName = newFunctionName;
+        if (newFunctionName.startsWith("_")) {
             this.weaklyPrivate = true;
         } else {
             this.weaklyPrivate = false;
@@ -31,15 +31,15 @@ public class MethodRenaming extends CompoundChangeRecord {
     }
 
     public String getName() {
-        return "Method Renaming";
+        return "Function Renaming";
     }
 
-    public String getOldMethodName() {
-        return oldMethodName;
+    public String getOldFunctionName() {
+        return oldFunctionName;
     }
 
-    public String getNewMethodName() {
-        return newMethodName;
+    public String getNewFunctionName() {
+        return newFunctionName;
     }
 
     public Boolean isWeaklyPrivate() {
@@ -70,7 +70,7 @@ public class MethodRenaming extends CompoundChangeRecord {
             default:
                 accessibilityNotice = "Invalid accessibility switch";
         }
-        return String.format("===\n%s\n---\nold method name: %s\nnew method name: %s\n%s\n",
-                getName(), oldMethodName, newMethodName, accessibilityNotice);
+        return String.format("===\n%s\n---\nold function name: %s\nnew function name: %s\n%s\n",
+                getName(), oldFunctionName, newFunctionName, accessibilityNotice);
     }
 }

@@ -33,8 +33,8 @@ class CompoundChangeDetectorTest {
 
     @Test
     void computeTreeEditScript() {
-        String srcFile = Paths.get(coreTestResourcesDirectory, "test_src_all.py").toAbsolutePath().toString();
-        String dstFile = Paths.get(coreTestResourcesDirectory, "test_dst_all.py").toAbsolutePath().toString();
+        String srcFile = Paths.get(coreTestResourcesDirectory, "test_src_mrel.py").toAbsolutePath().toString();
+        String dstFile = Paths.get(coreTestResourcesDirectory, "test_dst_mrel.py").toAbsolutePath().toString();
         Tree srcTree = null;
         Tree dstTree = null;
 
@@ -86,7 +86,7 @@ class CompoundChangeDetectorTest {
         String srcFile = Paths.get(coreTestResourcesDirectory, "test_src_mren.py").toAbsolutePath().toString();
         String dstFile = Paths.get(coreTestResourcesDirectory, "test_dst_mren.py").toAbsolutePath().toString();
         CompoundChangeDetector.computeFileEditScript(srcFile, dstFile);
-        CompoundChangeDetector.checkMethodRenaming();
+        CompoundChangeDetector.checkFunctionRenaming();
 
         System.out.println("src: " + srcFile);
         System.out.println("dst: " + dstFile);
@@ -100,7 +100,7 @@ class CompoundChangeDetectorTest {
         String srcFile = Paths.get(coreTestResourcesDirectory, "test_src_mrel.py").toAbsolutePath().toString();
         String dstFile = Paths.get(coreTestResourcesDirectory, "test_dst_mrel.py").toAbsolutePath().toString();
         CompoundChangeDetector.computeFileEditScript(srcFile, dstFile);
-        CompoundChangeDetector.checkMethodRelocation();
+        CompoundChangeDetector.checkFunctionRelocation();
 
         System.out.println("src: " + srcFile);
         System.out.println("dst: " + dstFile);
@@ -114,7 +114,7 @@ class CompoundChangeDetectorTest {
         String srcFile = Paths.get(coreTestResourcesDirectory, "test_src_param.py").toAbsolutePath().toString();
         String dstFile = Paths.get(coreTestResourcesDirectory, "test_dst_param.py").toAbsolutePath().toString();
         CompoundChangeDetector.computeFileEditScript(srcFile, dstFile);
-        CompoundChangeDetector.checkMethodRenaming();
+        CompoundChangeDetector.checkFunctionRenaming();
         CompoundChangeDetector.checkParameterChanges();
 
         System.out.println("src: " + srcFile);
@@ -129,7 +129,7 @@ class CompoundChangeDetectorTest {
         String srcFile = Paths.get(coreTestResourcesDirectory, "test_src_param.py").toAbsolutePath().toString();
         String dstFile = Paths.get(coreTestResourcesDirectory, "test_dst_param.py").toAbsolutePath().toString();
         CompoundChangeDetector.computeFileEditScript(srcFile, dstFile);
-        CompoundChangeDetector.checkMethodRenaming();
+        CompoundChangeDetector.checkFunctionRenaming();
         CompoundChangeDetector.checkParameterChanges();
         CompoundChangeDetector.checkParameterDefaultValueChange();
 

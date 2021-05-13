@@ -2,7 +2,7 @@ package com.github.ccdetector.changes;
 
 public class ParameterDefaultValueChange extends CompoundChangeRecord {
 
-    private String targetMethodName;
+    private String targetFunctionName;
     private String targetParameterName;
     private String oldDefaultValueString;
     private String newDefaultValueString;
@@ -15,11 +15,11 @@ public class ParameterDefaultValueChange extends CompoundChangeRecord {
 
     private Type type;
 
-    public ParameterDefaultValueChange(String targetMethodName, String targetParameterName,
+    public ParameterDefaultValueChange(String targetFunctionName, String targetParameterName,
                                        String oldDefaultValueString, String newDefaultValueString,
                                        Type type) {
         super();
-        this.targetMethodName = targetMethodName;
+        this.targetFunctionName = targetFunctionName;
         this.targetParameterName = targetParameterName;
         this.oldDefaultValueString = oldDefaultValueString;
         this.newDefaultValueString = newDefaultValueString;
@@ -72,7 +72,7 @@ public class ParameterDefaultValueChange extends CompoundChangeRecord {
             default:
                 description = "Invalid parameter default value change";
         }
-        return String.format("===\n%s\n---\ntarget method: %s\ntarget parameter: %s\n%s\n",
-                getName(), targetMethodName, targetParameterName, description);
+        return String.format("===\n%s\n---\ntarget function: %s\ntarget parameter: %s\n%s\n",
+                getName(), targetFunctionName, targetParameterName, description);
     }
 }
