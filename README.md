@@ -14,7 +14,9 @@ Adding or removing the leading underscore in Python method names effects their a
 
 ### Method Relocation
 
-Currently only support relocation within the same source file, not very useful.
+- Method insertion
+- Method removal
+- Method relocation
 
 ### Parameter Changes
 
