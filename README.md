@@ -2,6 +2,8 @@
 
 A static analysis tool depending on [GumTree](https://github.com/GumTreeDiff/gumtree) to detect 14 types of source code refactoring changes.
 
+This is my undergraduate thesis project, please access the thesis report at [Automatic Detection of Python API Changes](https://github.com/Alan052918/Undergraduate-Graduation-Project-Thesis/blob/master/main.pdf).
+
 ## Supported Changes
 
 ### Method renaming
